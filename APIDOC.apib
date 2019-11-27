@@ -1,0 +1,1177 @@
+FORMAT: 2A
+HOST: http://localhost:4000
+
+# Admin-Panel
+
+This projcet created with GraphQL API. ([GraphQL](https://graphql.org/))
+
+By GraphQL you can determine which data need to get.
+
+Structure of GraphQL query:
+1. **mutation** **{** "*from which resolver*" **{** "*data you want*" **}** **}**
+2. **query** **{** "*from which resolver*" **{** "*data you want*" **}** **}**
+
+## MODELS
+
+Explain properties of models. By these APIs you can get all these models and their properties.
+
+### User
+* `_id`: Type of this property is object id. This is uniqe.
+* `firstname`: Type is String
+* `lastname`: Type is String
+* `username`: Type is String
+* `email`:  Type is String
+* `type`: This is type of user. Type of this property is String.
+* `password`: Type is String
+
+### Tool Set
+* `_id`: Type of this property is object id. This is uniqe.
+* `title`: Title of Tool Set. Its type is String
+* `icon`: Type of this property when it saved into database is String, But when you want to send as body this property you should send it as **file**.
+* `categories`: All categories that related to determied Tool Set. By this property you can access data of categories. Its type is array
+
+### Category
+* `_id`: Type of this property is object id. This is uniqe.
+* `title`: Title of Category. Its type is String
+* `icon`: Type of this property when it saved into database is String, But when you want to send as body this property you should send it as **file**.
+* `tool_set_id`: By this property you can access data of tool set that this category related to it.
+* `sections`: All of sections that related to this Category. You can Access data of these Sections. Its type is array
+
+### Section
+* `_id`: Type of this property is object id. This is uniqe.
+* `title`: Title of Section. Its type is String
+* `category_id`: By this property you can access data of Category that this section related to it.
+* `has_populate`: Type is Boolean. This property when is true means that this section has populate button.
+* `populate_item`: Type is Array. This property holds inputs that should be filled. into this Array we have another object with one property `populate` that is String and holds name of populated item.
+* `page_type`: Type is String. type of section.
+* `items`: Type is Array. Holds items that related to this section. By this property you can access data of them.
+* `external_links`: Type is Array. Holds external Links that related to this section. By this property you can access data of them.
+* `image_items`: Type is Array. Holds Image Items that related to this section. By this property you can access data of them.
+
+### External Link
+* `_id`: Type of this property is object id. This is uniqe.
+* `name`: Type is String. It is Name of external link.
+* `url`: Type is String. It is Url of external link.
+* `target`: Type is String. This property says that how open this page in windows of browser.
+* `item_type`: Type is String. It is type of External Link.
+* `section_id`: By this property you can access data of Section that this external link related to it.
+* `category_id`: By this property you can access data of Category that this external link related to it.
+
+### Item
+* `_id`: Type of this property is object id. This is uniqe.
+* `input_item`: Type is Array. This property holds some data about inputs that used in this item. in this array we should use an object with these property:
+    * `name`: Name of input and Its type is String.
+    * `type`: Type of input and Its type is String.
+    * `is_populate`: When we click populate button in section these input get data of main input or not and its type is Boolean.
+    * `place_holder`: Hint of input and its type is String.
+* `url`: Url of input when we click submit button we should open this url and its type is String.
+* `submit_value`: Text of submit button. Its type is String.
+* `item_type`: Type of this item and its type String.
+* `on_submit`: When we clicked on submit button what should be executed. Type is String.
+* `section_id`: By this property you can access data of Section that this item related to it.
+* `is_submit_all`: When we click on submit button in section this property should be submitted or not. Its type is Boolean.
+* `description`: More info about item. Its type is String.
+* `lead`: Title of item. Its type is String.
+* `category_id`: By this property you can access data of Category that this item related to it.
+
+### Image Item
+* `_id`: Type of this property is object id. This is uniqe.
+* `src`: This is image of this item. By this porperty you can access photo in server. Its type is String.
+* `item_type`: Type of this image item and its type String.
+* `section_id`: By this property you can access data of Section that this image item related to it.
+* `category_id`: By this property you can access data of Category that this image item related to it.
+
+## GraphQL APIs [/graphql]
+
+Method of all requests is **POST**.
+Every Request Body has two field. first `operations` that hold a custom query that you want and the second one is `map` that contains variables.
+
+### Create User [POST]
+
+This API get you a token and user will save into session automatically.
+Main fields are `firsname` `lastname` `username` `email` `password`.
+
+Optional responsive field are `token` `user {}`. `user {}` represent optional fields, too.
+`user{ firstname lastname type username email }`
+
++ Request (application/json)
+
+        {
+            "operations": "{\"query\": \"{\"query\": \"mutation{createUser(userInput:{firstname: \"erfan\" lastname:\"ahmadi\" username:\"erfan1222\" email:\"erfan1222@gmail.com\" password: \"1234\"}){token user{ username }}}\"}",
+            "map": "{}"
+        }
+
++ Response 200
+
+        {
+            "data": {
+                "createUser": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck",
+                    "user": {
+                        "username": "erfan1222"
+                    }
+                }
+            }
+        }
+
+### Login [POST]
+This API get you a token and user automaticlly save in session.
+User can login with `username` or `email`. That meas you should have `username` field or `email`
+field. It return you same data like in `create user` API.
+    
++ Request (application/json)
+
+        {
+            "operations": {"query": "query {login(input: {username: \"hosein2rd\" password: \"1234\"}){ token user { firstname username email type } }}"}
+            "map": "{}"
+        }
+        
++ Response 200
+    
+        {
+            "data": {
+                "login": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck",
+                    "user": {
+                        "username": "erfan1222"
+                    }
+                }
+            }
+        }
+        
+        
+
+### Logout [POST]
+This API return you success proccess. If logout is successful return `success: true` and if not successfull return `success: false`
+
+In headers you should add `token` field that gave you from `login` and `create user` API.
+
++ Request (application/json)
+
+    + Headers
+    
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+    
+        {
+            "operations": "{\"query\": \"query { logout { success } }\"}",
+            "map": "{}"
+        }
+   
++ Response 200
+    
+        {
+            "data": {
+                "logout": {
+                    "success": true
+                }
+            }
+        }
+        
+
+### Get Specific User [POST]
+Get specific user by its id. Just Admin users can access this API. In header should add `token` field.
+
++ Request (application/json)
+
+    + Headers
+
+            token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+    
+    + Body
+
+            {
+                "operations": "{\"query\": \"query { getUser(input: { id: \"5d2475201c61f91664ae9361\" }) { firstname lastname username email type } }\"}",
+                "map": "{}"
+            }
+        
++ Response 200
+
+        {
+            "data": {
+                "getUser": {
+                    "_id": "5d2475201c61f91664ae9361",
+                    "firstname": "hosein",
+                    "lastname": "doroud",
+                    "email": "mdoroud97@mail.com",
+                    "username": "hosein2rd"
+                    "type": "admin"
+                }
+            }
+        }
+        
+### Get All User [POST]
+
+In header should add `token` field.
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"query { users { _id firstname lastname  type username email } }\" }",
+            "map": "{}"
+        }
+        
++ Response 200
+
+        
+        {
+            "data": {
+                "users": {
+                    [
+                        "_id": "5d2475201c61f91664ae9361",
+                        "firstname": "hosein",
+                        "lastname": "doroud",
+                        "email": "mdoroud97@mail.com",
+                        "username": "hosein2rd"
+                        "type": "admin"
+                    ]
+                }
+            }
+        }
+        
+
+### Delete Specific User [POST]
+In headers should add `token` field. This API need id of user that will be deleted.
+    
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        { 
+            "operations": "{ \"query\": \"mutation { deleteUser(id: \"5d2475201c61f91664ae9361\") { success } }\" }",
+            "map": "{}"
+        }
+    
+    
++ Response 200
+
+    
+        {
+            "data": {
+                "deleteUser": {
+                    "success": true
+                }
+            }
+        }
+        
+        
+### Update Specific User [POST]
+In headers should add `token` field. This API need id of user that will be updated and return updated user. By this API can update `firstname` `lastname` `username` `email` `password` of user
+
++ Request (application/json)  
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"mutation { updateUser(input: { _id: \"lsjkfs\" firstname: \"hos\" }) { _id firstname }\" }"
+            "map": "{}"
+        }
+        
++ Response 200
+
+        {
+            "data": {
+                "users": {
+                    [
+                        "_id": "5d2475201c61f91664ae9361",
+                        "firstname": "hosein",
+                        "lastname": "doroud",
+                        "email": "mdoroud97@mail.com",
+                        "username": "hosein2rd"
+                        "type": "admin"
+                    ]
+                }
+            }
+        }
+        
+### Create Tool Set [POST]
+Need `token` for check authentication. `title` `icon` `category` is field of this API. `icon` is file. you should put it into map field like example.
+Tool set has a property called `categories` that hold id of categories. By `cateories { titel }` for example you can access the data of categories.
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"mutation($icon: Upload) { createToolSet(input: { title: \"Target data\" icon: $icon}) { _id title icon categories { title } title icon } }\" }",
+            "map": "{ \"icon\": [\"variables.icon\"] }",
+            "icon": "image.png"
+        }
+        
++ Response 200
+
+        {
+            "data": {
+                "createToolSet": {
+                    "_id": "5d2475201c61f91664ae9361",
+                    "title": "Data target",
+                    "icon": "http://www.osint.ir/uploads/image.png",
+                    "categories": []
+                }
+            }
+        }
+        
+### Get Specific Tool Set [POST]
+
++ Request (application/json)
+
+        {
+            "operations": "{ \"query\": \"query { toolSet(id: \"5d2475201c61f91664ae9361\") { _id title icon categories{ title icon } } }\" }"
+            "map": "{}"
+        }
+        
++ Response 200 
+
+        {
+            "data": {
+                "toolset": {
+                    "_id": "5d2475201c61f91664ae9361",
+                    "title": "Target data",
+                    "icon": "http://www.osint.ir/uploads/image.png",
+                    "categories": [
+                        {
+                            "title": "Seach Engines",
+                            "icon": "http://www.osint.ir/uploads/engine.png"
+                        },
+                        {
+                            "title": "resources",
+                            "icon": "no-icon"
+                        }
+                    ]
+                }
+            }
+        }
+        
+### Get All Tool Sets [POST]
+
++ Request (application/json)
+
+        {
+            "operations": "{ \"query\": \"query { toolSets { _id title icon } }\" }",
+            "map": "{}"
+        }
+        
++ Response 200
+
+        {
+            "data": {
+                "toolSets": [
+                    {
+                        "_id": "5d2475201c61f91664ae9361",
+                        "title": "Target data",
+                        "icon": "http://www.osint.ir/uploads/image.png"
+                    },
+                    {
+                        "_id": "5d2475201c61f91664ae9312",
+                        "title": "Online Resoures",
+                        "icon": "no-icon"
+                    }
+                ]
+            }
+        }
+        
+        
+### Delete Specific Tool Set [POST]
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "\"query\": \"mutation { deleteToolSet(id: \"5d2475201c61f91664ae234a\") { success } }\"",
+            "map": "{}"
+        }
+        
++ Response 200 
+
+        {
+            "data": {
+                "deleteToolSet": {
+                    "success": true            
+                }
+            }
+        }
+        
+### Update Specific Tool Set [POST]
+
+Need `token`. You can update all properties of toolset. `icon` field is file.
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\" : \"mutation($icon: Uplaod) { updateToolSet(input: { id: \"asdf\" icon: $icon}) { _id title icon } }\" }",
+            "map": "{\"icon\": [\"variables.icon\"]}",
+            "icon": "photo.png"
+        }
+        
++ Response 200 (application/json)
+
+        {
+            "data": {
+                "updateToolSet": {
+                    "_id": "5d2475201c61f91664ae234a",
+                    "title": "Target data",
+                    "icon": "http://www.osint.ir/photo.png"
+                }
+            }
+        }
+
+
+## Category API [/graphql]
+
+
+### Create Category [POST]
+It need `token` in headers. You should determine it that this catogry is for which tool set. You should give `tool_set_id` id of tool set that this category related to it. `icon` is file.
+
+`tool_set_id` should not be **null**
+
+`sections` hold all section id and their other property by calling this field you can access their properties.
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"mutation { createCategory($icon: Upload) (input: { title: \"search engines\" icon : $icon tool_set_id:\"5d2475201c61f91664ae234a\"}) { _id title tool_set_id { title } icon sections { title } } }\" }",
+            "map": "{\"icon\": [\"variables.icon\"]}",
+            "icon": "photo_category.png"
+        }
+        
++ Response 200 
+
+        {
+            "data": {
+                "createCategory": {
+                    "_id": "5d2475201c61f91664ae2123",
+                    "title": "search engines",
+                    "tool_set_id": {
+                        "title": "Target data"
+                    },
+                    "icon": "http://www.osint.ir/uploads/photo_category.png"
+                    "sections": []
+                }
+            }
+        }
+        
+### Get Specific Category [POST]
+
++ Request (application/json)
+
+        {
+            "operations": "{ \"query\": \"query { category(id: \"5d2475201c61f91664ae2123\") { _id  title  sections { title }} }\" }",
+            "map": "{}"
+        }
+        
++ Response 200 
+
+        {
+            "data": {
+                "category": {
+                    "_id": "5d2475201c61f91664ae2123",
+                    "title": "search engines",
+                    "sections": [
+                        {
+                            "title": "Target data"
+                        }
+                    ]
+                }
+            }
+        }
+        
+### Get All Categories [POST]
+
++ Request (application/json)
+
+         {
+            "operations": "{ \"query\": \"query { categories { _id  title  } }\" }",
+            "map": "{}"
+         }
+
++ Response 200 
+
+        {
+            "data": {
+                "categories": [
+                    {
+                        "_id": "5d2475201c61f91664ae2123",
+                        "title": "search engines"
+                    },
+                    {
+                        "_id": "5d2475201c61f91664aeas34",
+                        "title": "Resource search engines"
+                    }
+                ]
+            }
+        }
+        
+### Delete Specific Category [POST]
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"mutation { deleteCategory(id: \"5d2475201c61f91664ae2123\") { success } }\" }",
+            "map": "{}"
+        }
+        
++ Response 200
+
+        {
+            "data": {
+                "deleteCategory": {
+                    "success": true
+                }
+            }
+        }
+        
+### Update Specific Category [POST]
+
+You can update all properties of category.
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"mutation($icon: Upload) { updateCategory(input:{id: \"5d2475201c61f91664ae2123\" title: \"new title\" icon: $icon tool_set_id: \"5d2475201c61f91664ae2asde\"}) { _id title } }\" }",
+            "map": "{\"icon\": [\"variables.icon\"]}",
+            "icon": "image.png"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "data" : {
+                "updateCategory": {
+                    "_id": "5d2475201c61f91664ae2123",
+                    "title": "new title"
+                }
+            }
+        }
+    
+
+## Section API [/graphql]
+
+`section` has a property called `category_id` that hold info of category that this section refer to it. `section` has another property called `items` that hold info of items that this section
+holds. `section` has another property called `external_links` that holds info of external link that refer to this section. 
+`section` has another property called `image_items` that holds information of image items that refer to this section. `has_populate` if is true means that this section has main place holder. `populate_item` is array that hold data of main place holder.
+`page_type` is type of section.
+
+### Create Section [POST]
+
+Need authentication.
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"mutation { createSection(input: { title: \"New Section\"  category_id: \"5d2475201c61f91664ae2123\" has_populate: true populate_item: [{populate: ""}] page_type: \"search\"}) { _id title } }\" }",
+            "map": "{}"
+        }
+
++ Response 200 
+
+        {
+            "data": {
+                "createSection": {
+                    "_id": "5d2475201c61f91664ae2ase",
+                    "title": "New Section"
+                }
+            }
+        }
+    
+### Get Specific Section [POST] 
+
++ Request (application/json)
+
+        {
+            "operations": "{ \"query\": \"query { section(id: \"5d2475201c61f91664ae2ase\") { _id page_type category_id { title } } }\" }",
+            "map": "{}"
+        }
+        
++ Response 200 
+
+        {
+            "data": {
+                "section" : { 
+                    "_id": "5d2475201c61f91664ae2ase",
+                    "page_type": "search",
+                    "category_id": {
+                        "Search engines"
+                    }
+                }
+            }
+        }
+
+### Get All Sections [POST]
+
++ Request (application/json)
+
+        {
+            "operations": "{ \"query\": \"query { sections { _id page_type category_id { title } } }\" }",
+            "map": "{}"
+        }
+        
++ Response 200 
+
+        {
+            "data": {
+                "sections": [
+                    {
+                        "title": "new sectoin"
+                    },
+                    {
+                        "title": "best section"
+                    }
+                ]
+            }
+        }
+
+
+### Delete Specific Section [POST]
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"mutation { deleteSection(id: \"5d2475201c61f91664ae2ase\") { success } }\" }",
+            "map": "{}"
+        }
+        
++ Response 200 
+
+        {
+            "data": {
+                "deleteSection": {
+                    "success": true
+                }
+            }
+        }
+
+### Update Specific Section [POST]
+
+By this API you can update all properties of section but in this example we just update `title` property.
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+
+        {
+            "operations": "{ \"query\": \"mutation { updateSection(input: { id: \"5d2475201c61f91664ae2ase\" title: \"title changed\"}) {_id title external_links { url }} }\" }",
+            "map": "{}"
+        }
+        
++ Response 200 
+
+        {
+            "data": {
+                "updateSection": {
+                    "_id": "5d2475201c61f91664ae2ase",
+                    "title": "title changed",
+                    "external_links": [
+                        {
+                            "url": "www.google.com"
+                        },
+                        {
+                            "url": "www.bing.com"
+                        }
+                    ]
+                }
+            }
+        }
+
+
+## External Link API [/graphql]
+External Link has these prorperties: `name url target item_type section_id`
+`name` for name of this external link. `url` for url of link. `target` for how to open url. `item_type` for type of item. `section_id` hold information of section that this external link refer to it.
+
+
+### Create External Link [POST]
+
++ Request (application/json)
+
+    + Headers
+
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+
+    + Body
+
+        {
+            "operations": { "query": "mutation { createExternalLink(input: {  name: \"google\" url: \"www.google.com\" target: \"_blank\" item_type: \"link\" section_id: \"lkjasf\"}) { _id url name } }" },
+            "map": {}
+        }
+
+            
++ Response 
+
+        {
+            "data": {
+                "createExternalLink": {
+                    "_id": "5d2475201c61f91664ae2a123",
+                    "url": "www.google.com",
+                    "name": "google"
+                }
+            }
+        }
+
+### Get Specific External Link [POST]
+
++ Request (application/json)
+
+    + Body 
+        
+        {
+            "operations": { "query": "query { externalLink(id: \"5d2475201c61f91664ae20996\") { url name } }" },
+            "map": {}
+        }
+    
++ Response 200
+
+        {
+            "data": {
+                "externalLink": {
+                    "url": "www.google.com",
+                    "name": "google"
+                }
+            }
+        }
+        
+### Get All External Links [POST]
+
++ Request (application/json)
+
+    + Body 
+        
+        {
+            "operations": { "query": "query { externalLinks { url name target} }" },
+            "map": {}
+        }
+    
++ Response 200
+
+        {
+            "data": {
+                "externalLinks": [
+                    {
+                        "url": "www.google.com",
+                        "name": "google",
+                        "target": "_blank"
+                    }, 
+                    {
+                        "url": "www.bing.com",
+                        "name": "bing",
+                        "target": "_blank"
+                    }
+                ]
+            }
+        }
+
+### Delete Specific External Link [POST]
+
++ Request (application/json)
+
+    + Headers
+    
+            token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body 
+        
+        {
+            "operations": { "query": "mutation { deleteExternalLink(id: \"5d2475201c61f91664ae20996\") { success } }" },
+            "map": {}
+        }
+        
++ Response 200
+
+        {
+            "data": {
+                "deleteExternalLink": {
+                    "success": true
+                }
+            }
+        }
+        
+### Update Specific External Link [POST]
+
+You can update all properties of external link, But in this example we just update name of external link by its id.
+
++ Request (application/json)
+
+    + Headers
+    
+            token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body 
+        
+        {
+            "operations": { "query": "mutation { updateExternalLink(input: { id: \"5d2475201c61f91664ae20996\" name: \"New Name\"}) { _id name url } }" },
+            "map": {}
+        }
+        
++ Response
+        
+        {
+            "data": {
+                "updateExternalLink": {
+                    "_id": "",
+                    "name": "New Name",
+                    "url": "www.google.com"
+                } 
+            }
+        }
+        
+
+## Item API [/graphql]
+
+Itam has these properties :
+
+`input_item url submit_value item_type on_submit section_id is_submit_all description lead`
+
+`input_item` has these properties : 
+`name type is_populate place_holder`
+
+`input_item` is input or text box of an item with special properties. `url` url of item. `submit_value` is text of action button of input
+`item_type` is type of item. `on_submit` is for showing us that when click submit button what it will do.
+`section_id` is info of section that item related to it. `is_submit_all` is boolean property that show us when user in section click on submit button in
+main input this input should be submited or not. `description` is optional. this property is String and is more info about input.
+`lead` is optional. this property for title of input.
+
+
+
+### Create Item [POST]
+
++ Request (application/json)
+
+    + Headers
+    
+            token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body 
+        
+        {
+            "operations": { "query": "mutation{ createItem(input: { input_item: [{ name: \"GOOGLE\" type: \"Text\" is_populate: true place_holder: \"google\"}] url: \"www.google.com\" submit_value: \"GOOGLE\" item_type: \"search\" on_submit: \"go to google\" section_id: \"asdklj\" is_submit_all: true description: \"sdfsaf\" lead: \"asdfsfd\"}) {  _id url item_type} }" },
+            "map": {}
+        }
+        
++ Response 200
+
+        {
+            "data": {
+                "createItem": {
+                    "_id": "5d2475201c61f91664ae20996",
+                    "url": "www.google.com",
+                    "item_type": "input"
+                }
+            }
+        }
+        
+### Get Specific Item [POST]
+
++ Request (application/json)
+    
+    + Body 
+        
+        {
+            "operations": { "query": "query { item(id: \"5d2475201c61f91664ae20996\") { url section_id { title category_id { title }} } }" },
+            "map": {}
+        }
+        
++ Response 200
+    
+        {
+            "data": {
+                "item": {
+                    "url": "www.google.com/query?search={GOOGLE}",
+                    "section_id": {
+                        "title": "search engine",
+                        "category_id": {
+                            "title": "Target Data"
+                        }
+                    }
+                }
+            }
+        }
+
+        
+### Get Items [POST]
+
++ Request (application/json)
+    
+    + Body 
+    
+        {
+            "operations": { "query": "query { items { _id url } }" },
+            "map": {}
+        }
+        
++ Response 200
+
+        {
+            "data": {
+                "items": {
+                    "_id": "5d2475201c61f91664ae20996",
+                    "url": "www.google.com/query?search={GOOGLE}"
+                }
+            }
+        }
+        
+
+### Delete Specific Item [POST]
+
++ Request (application/json)
+
+    + Headers
+    
+            token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+            
+            {
+                "operations": { "query": "mutation { deleteItem (id: \"5d2475201c61f91664ae20996\") { success } }" },
+                "map": "{}"
+            }
+            
++ Response 200
+
+        {
+            "data": {
+                "deleteItem": {
+                    "success": true
+                }    
+            }
+        }
+
+### Update Specific Items [POST]
+
+You can update all properties of Item, But in this example we just update `url` `submit_value`.
+
++ Request (application/json)
+
+    + Headers
+        
+            token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+                
+            {
+                "operations": { "query": "mutation { updateItem(input: { id: \"5d2475201c61f91664ae20996\" url: \"www.google.com/search?query={GOOGLE}\" submit_value: \"asdf\" }) { url section_id { title } } }" },
+                "map": "{}"
+            }
+            
++ Response 200
+
+        {
+            "data": {
+                "updateItem": {
+                    "url": "www.google.com/search?query={GOOGLE}",
+                    "section_id": {
+                        "title": "Search engines"
+                    }
+                }
+            }
+        }
+        
+## Image Item API [/graphql]
+
+Image Item has five properties. First one is `_id` that is unique. Second one is `src` that is url of image. Its type is file but it will save as String. Third one is `item_type`. Type of this property is String and it is type of Image Item.
+Forth property is `section_id` that holds information of Section that this image item related to it. Fifth property is `category_id` that holds information of category that this image item related to it. All of these property must be **not null**
+
+### Create Image Item [POST]
+
++ Request (application/json)
+
+    + Headers
+            
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+    + Body
+                    
+                {
+                    "operations": { "query": "mutation { createImageItem($src: Upload!)(input: { src: $src item_type: \"image\" section_id: \"5d2475201c61f91664ae20996\"}) { _id src item_type section_id { title }} }" },
+                    "map": "{\"src\": [\"variables.src\"]}",
+                    "src": "photo_category.png"
+                }
+                
++ Response 200
+
+        {
+            "data": {
+                "createImageItem": {
+                    "_id": "5d2475201c61f91664ae20er1",
+                    "src": "http://www.osint.ir/uploads/photo_category.png",
+                    "item_type": "image",
+                    "section_id": {
+                        "title": "search engines"    
+                    }
+                }
+            }
+        }
+    
+
+### Get Specific Image Item [POST]
+
++ Request (application/json)
+    
+    
+        {
+            "operations": { "query": "query { imageItem (id: \"5d2475201c61f91664ae20er1\") { _id src } }" },
+            "map": {},
+        }
+        
++ Response 200
+
+        {
+            "data": {
+                "imageItem": {
+                    "_id": "5d2475201c61f91664ae20er1",
+                    "src": "http://www.osint.ir/uploads/photo_category.png"
+                }
+            }
+        }
+        
+### Get All Image Items [POST]
+
++ Request (application/json)
+
+    + Body
+    
+            {
+                "operations": { "query": "query { imageItems { _id src } }" },
+                "map": {},
+            }
+
++ Response 200
+
+        {
+            "data": {
+                "imageItems": [
+                    {
+                        "_id": "5d2475201c61f91664ae20er1",
+                        "src": "http://www.osint.ir/uploads/photo_category1.png"
+                    },
+                    {
+                        "_id": "5d2475201c61f91664ae20ag2",
+                        "src": "http://www.osint.ir/uploads/photo_category2.png"
+                    },
+                    {
+                        "_id": "5d2475201c61f91664ae2iuet1",
+                        "src": "http://www.osint.ir/uploads/photo_category3.png"
+                    }
+                ]
+            }
+        }
+
+### Delete Specific Image Item [POST]
+
++ Request (application/json)
+
+    + Headers
+            
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+
+    + Body
+                        
+                {
+                    "operations": { "query": "mutation { deleteImageItem(id: \"5d2475201c61f91664ae20er1\") { success } }" },
+                    "map": {}
+                }
+                
++ Response 200
+
+        {
+            "data": {
+                "deleteImageItem": {
+                    "success": true
+                }
+            }
+        }
+        
+### Update Specific Image Item [POST]
+
+You can update all properies of image item, But in this example we just update `item_type` and `section_id`.
+
++ Request (application/json)
+
+    + Headers
+            
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWRtaW4iLCJ1c2VyIjp7Il9pZCI6IjVkMzJkODkyMzY4MTVmMDZjZTRmZDRmZSIsImZpcnN0bmFtZSI6ImVyZmFuIiwibGFzdG5hbWUiOiJhaG1hZGkiLCJ0eXBlIjoiYWRtaW4iLCJlbWFpbCI6ImVyZmFuMTIyMkBnbWFpbC5jb20iLCJ1c2VybmFtZSI6ImVyZmFuMTIyMiIsInBhc3N3b3JkIjoiJDJiJDEyJGp4Z2VNV0wxLld0OGY1UnNiQU5XeC5VZFVGOTFyRVd5S2ozTFdTM2tGUUhqT3pxVnU2YzY2IiwiX192IjowfSwiaWF0IjoxNTYzNjEzMzMwLCJleHAiOjE1NjM2MTY5MzB9.l571JReucnlRiJc-IZvUD8Nlory-qkDCofCmZbjDEck
+
+
+    + Body
+                        
+            {
+                "operations": { "query": "mutation($src: Upload) { updateImageItem(input: { id:/"5d2475201c61f9164ae20er1/" item_type: /"new type/" section_id: /"5d2475201c61f321664ae20as1/"}) { _id item_type } }" },
+                "map": "{\"src\": [\"variables.src\"]}",
+                "src": "photo_category.png"
+            }
+            
++ Response 200
+
+        {
+            "data": {
+                "updateImageItem": {
+                    "_id": "5d2475201c61f91664ae20er1",
+                    "item_type": "new type"
+                }
+            }
+        }
+
+
